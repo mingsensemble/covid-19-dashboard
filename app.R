@@ -40,11 +40,13 @@ disclaimer <- paste0("
 ", file.info(fileLoc)$ctime)
 
 fineprint <- "The idea of using exponential growth model to benchmark confirmed case trajectories was inpired by https://ourworldindata.org/coronavirus"
-devInfo <- "Developed by Ming-Sen Wang (Economist/Data Scientist); first version 03/16/2020; current version 03/30/2020"
+devInfo <- "Developed by Ming-Sen Wang; first version 03/16/2020; current version 03/30/2020"
 # ================================
 # World data
 # aggregate data at country level
-allDf <- data %>% gather(
+allDf <- data %>% mutate(
+  `Country/Region`= gsub("\\*", "", `Country/Region`)
+) %>% gather(
   date, cases, -`Province/State`, -`Country/Region`, -Lat, -Long
 ) %>% group_by(`Country/Region`, date) %>% summarize(
   cases = sum(cases)
@@ -59,7 +61,7 @@ allDf <- data %>% gather(
 keyCountries <- c(
   "US", "Italy", "China", "Korea, South", "United Kingdom",
   "Singapore", "Australia", "Japan", "Peru", "India",
-  "Taiwan*", "United Arab Emirates", "France", "Germany"
+  "Taiwan", "United Arab Emirates", "France", "Germany"
 )
 # ==================================
 # location parameters
@@ -106,7 +108,7 @@ posDataUS <- allDfUS %>% group_by(state) %>%
   dplyr::filter(days == max(days)) %>%
   select(days, cases, state)
 
-ylvl <- c(40000, 20000, 10000, 5000)
+ylvl <- c(40000, 20000, 2000, 500)
 funcLoc <- tibble(
   days = do.call('c', Map(function(y, k) {inverse_exp_growth(y, k , x0 = x0)}, y = as.list(ylvl), k = as.list(c(2, 3, 5, 10)))),
   cases = ylvl,
@@ -135,13 +137,13 @@ ui_world <- fluidPage(
     selectInput(
       'country', "Select a Country",
       choices = dropdown,
-      selected = "Taiwan*"
+      selected = "Taiwan"
     ),
     checkboxInput("simple", "Declutter", FALSE),
     hr(),
-    p(disclaimer, style = "font-size:16px"),
+    p(disclaimer, style = "font-size:14px"),
     hr(),
-    p(fineprint, style = "font-size:16px"),
+    p(fineprint, style = "font-size:14px"),
     hr(),
     p(devInfo, style = "font-size:12px")
   ), 
@@ -159,9 +161,9 @@ ui_us <- fluidPage(
     ),
     checkboxInput("simpleUS", "Declutter", FALSE),
     hr(),
-    p(disclaimer, style = "font-size:16px"),
+    p(disclaimer, style = "font-size:14px"),
     hr(),
-    p(fineprint, style = "font-size:16px"),
+    p(fineprint, style = "font-size:14px"),
     hr(),
     p(devInfo, style = "font-size:12px")
   ), 
@@ -223,13 +225,18 @@ server <- function(input, output) {
       geom_text(
         data = usedData %>% dplyr::filter(selected == "Y"),
         aes(label = cases),
-        nudge_y = log10(1.25)
+        nudge_y = log10(1.25),
+        size = 3
       ) + 
       geom_text(
         data = usedPosData,
-        aes(x = days, y = cases, label = `Country/Region`, colour = selected, alpha = as.numeric(as.factor(selected))),
+        aes(
+          x = days, y = cases, label = `Country/Region`, 
+          colour = selected, alpha = as.numeric(as.factor(selected))
+          ),
         nudge_x = 1,
-        nudge_y = log10(1.5)
+        nudge_y = log10(1.5),
+        size = 4
       ) + scale_y_log10(labels = scales::comma, limits = c(x0, max(df$cases) * 5)) + 
       scale_x_continuous(limits = c(0, max(df$days) + 5)) +
       stat_function(fun = exp_growth, args = list(k = 10, x0 = x0), colour = "#ee9e64", alpha = 0.5) +
@@ -277,13 +284,18 @@ server <- function(input, output) {
       geom_text(
         data = usedData %>% dplyr::filter(selected == "Y"),
         aes(label = cases),
-        nudge_y = log10(1.25)
+        nudge_y = log10(1.25),
+        size = 3
       ) + 
       geom_text(
         data = usedPosData,
-        aes(x = days, y = cases, label = state, colour = selected, alpha = as.numeric(as.factor(selected))),
+        aes(
+          x = days, y = cases, label = state, 
+          colour = selected, alpha = as.numeric(as.factor(selected))
+          ),
         nudge_x = 1,
-        nudge_y = log10(1.5)
+        nudge_y = log10(1.2),
+        size = 4
       ) + scale_y_log10(labels = scales::comma, limits = c(x0, max(dfUS$cases) * 5)) + 
       scale_x_continuous(limits = c(0, max(dfUS$days) + 5)) +
       stat_function(fun = exp_growth, args = list(k = 10, x0 = x0), colour = "#ee9e64", alpha = 0.5) +
