@@ -1,0 +1,13 @@
+name: covid19-dashboard
+title: covid19-dashboard
+username:
+account: mswang-tw
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1963758
+bundleId: 2945531
+url: https://mswang-tw.shinyapps.io/covid19-dashboard/
+when: 1585597591.49876
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: README.md|Archive/app - 20200326.R|Archive/deploy-dashboard.R|data/time_series_19-covid-Confirmed.csv
